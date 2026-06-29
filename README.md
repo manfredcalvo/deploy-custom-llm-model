@@ -29,10 +29,26 @@ benchmark.py                                     # Local CLI benchmark (shared c
 
 - **Databricks workspace** with Serverless GPU compute (AI Runtime) and Model Serving access
 - **Unity Catalog** catalog/schema you can write to
-- **Databricks CLI** with a configured profile
+- **Databricks CLI** installed
+
+### Authentication
+
+Log in using the workspace host first, then use the resulting profile in all commands:
 
 ```bash
-databricks auth login --profile e2-demo-field-eng
+# Login (creates or updates a profile for this workspace)
+databricks auth login --host https://e2-demo-field-eng.cloud.databricks.com
+
+# Optionally assign a named profile for convenience
+databricks auth login --host https://e2-demo-field-eng.cloud.databricks.com --profile e2-demo-field-eng
+```
+
+Once authenticated, pass `--profile <name>` to every CLI command, or set it once in `databricks.yml`:
+
+```yaml
+workspace:
+  host: https://e2-demo-field-eng.cloud.databricks.com
+  profile: e2-demo-field-eng
 ```
 
 ## Deploy and run
