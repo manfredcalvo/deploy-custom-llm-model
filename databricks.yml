@@ -1,0 +1,85 @@
+bundle:
+  name: deploy_custom_llm_model
+
+include:
+  - resources/*.yml
+
+variables:
+  catalog:
+    description: Unity Catalog catalog for the registered model
+    default: main
+  schema:
+    description: Unity Catalog schema for the registered model
+    default: default
+  model_name:
+    description: Registered model name in Unity Catalog
+    default: gemma_4_e2b_it
+  base_model:
+    description: Hugging Face repo id of the base model to deploy
+    default: google/gemma-4-E2B-it
+  endpoint_name:
+    description: Model Serving endpoint name (must be unique in the workspace)
+    default: gemma-4-e2b-it
+  tensor_parallel:
+    description: vLLM tensor parallel size (4 for models needing MULTIGPU_MEDIUM)
+    default: "1"
+  workload_type:
+    description: Serving workload type (GPU_MEDIUM = 1xA10, MULTIGPU_MEDIUM = 4xA10)
+    default: GPU_MEDIUM
+  hardware_accelerator:
+    description: Serverless GPU for the job (GPU_1xA10 or GPU_8xH100)
+    default: GPU_1xA10
+  max_model_len:
+    description: vLLM context window (reduce for larger models on a single A10)
+    default: "16384"
+  gpu_mem_util:
+    description: vLLM gpu_memory_utilization (raise for larger models on a single A10)
+    default: "0.70"
+  embed_weights:
+    description: >
+      "true" ships weights as MLflow artifacts (fast replica starts); "false" makes the
+      serving container download them from HF at startup (required when weights exceed
+      the ~10 GiB per-artifact serving upload limit, e.g. gemma-4-E4B-it)
+    default: "true"
+  tool_call_parser:
+    description: >
+      vLLM tool-call parser enabling native OpenAI tool calling (gemma4 for Gemma 4
+      models). Empty string disables.
+    default: gemma4
+  smoke_test:
+    description: Set to "false" to skip the local vLLM smoke test (bypasses FIPS container issue)
+    default: "false"
+  benchmark_levels:
+    description: Concurrency levels for the post-deployment benchmark task
+    default: "1,2,4,8"
+  extra_vllm_args:
+    description: >
+      Extra space-separated vLLM server flags appended to the entrypoint
+      (e.g. "--kv-cache-dtype fp8")
+    default: ""
+
+workspace:
+  host: https://e2-demo-field-eng.cloud.databricks.com
+  profile: e2-demo-field-eng
+
+targets:
+  dev:
+    mode: development
+    default: true
+
+  andreas:
+    mode: development
+    workspace:
+      host: https://fevm-classic-stable-andrea.cloud.databricks.com
+      profile: andreas_workspace
+
+  field-eng:
+    mode: development
+    workspace:
+      host: https://e2-demo-field-eng.cloud.databricks.com
+      profile: e2-field-eng
+
+  prod:
+    mode: production
+    workspace:
+      root_path: /Workspace/Shared/.bundle/${bundle.name}/${bundle.target}

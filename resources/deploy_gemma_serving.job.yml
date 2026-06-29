@@ -1,0 +1,73 @@
+resources:
+  jobs:
+    deploy_gemma_serving_endpoint:
+      name: deploy-gemma-serving-endpoint
+
+      tasks:
+        - task_key: Deploy_Gemma_Serving_Endpoint
+          notebook_task:
+            notebook_path: ../notebooks/01 - Deploy Gemma Serving Endpoint.py
+            base_parameters:
+              CATALOG: ${var.catalog}
+              SCHEMA: ${var.schema}
+              MODEL_NAME: ${var.model_name}
+              BASE_MODEL: ${var.base_model}
+              ENDPOINT_NAME: ${var.endpoint_name}
+              SMOKE_TEST: ${var.smoke_test}
+              TENSOR_PARALLEL: ${var.tensor_parallel}
+              WORKLOAD_TYPE: ${var.workload_type}
+              MAX_MODEL_LEN: ${var.max_model_len}
+              GPU_MEM_UTIL: ${var.gpu_mem_util}
+              EMBED_WEIGHTS: ${var.embed_weights}
+              TOOL_CALL_PARSER: ${var.tool_call_parser}
+              EXTRA_VLLM_ARGS: ${var.extra_vllm_args}
+            source: WORKSPACE
+          environment_key: gpu_environment
+          compute:
+            # GPU_1xA10 (24 GB) suffices for the E2B model; for larger models
+            # (e.g. gemma-4-12B-it) override hardware_accelerator to GPU_8xH100.
+            hardware_accelerator: ${var.hardware_accelerator}
+          # Weights download + vLLM startup + endpoint provisioning can take a while.
+          timeout_seconds: 14400
+
+        - task_key: Benchmark_Endpoint
+          depends_on:
+            - task_key: Deploy_Gemma_Serving_Endpoint
+          notebook_task:
+            notebook_path: ../notebooks/02 - Benchmark Endpoint.py
+            base_parameters:
+              ENDPOINT_NAME: ${var.endpoint_name}
+              LEVELS: ${var.benchmark_levels}
+              MAX_TOKENS: "256"
+              PROFILE: short
+              RESULTS_TABLE: ${var.catalog}.${var.schema}.endpoint_benchmarks
+            source: WORKSPACE
+          # Same serverless environment, but no compute block: the benchmark is a pure
+          # HTTP client and runs on serverless CPU; the GPU work happens on the endpoint.
+          environment_key: gpu_environment
+          timeout_seconds: 1800
+
+        - task_key: Agent_Implementation_Example
+          depends_on:
+            - task_key: Benchmark_Endpoint
+          notebook_task:
+            notebook_path: ../notebooks/03 - Agent Implementation Example.py
+            base_parameters:
+              ENDPOINT_NAME: ${var.endpoint_name}
+            source: WORKSPACE
+          # Serverless CPU like the benchmark: the agent is orchestration only; the LLM
+          # work happens on the serving endpoint.
+          environment_key: gpu_environment
+          timeout_seconds: 3600
+
+      environments:
+        # Dependencies are installed via %pip inside the notebook — the Environments
+        # dependency panel is not supported for serverless GPU scheduled jobs.
+        - environment_key: gpu_environment
+          spec:
+            environment_version: "4"
+
+      queue:
+        enabled: true
+
+      max_concurrent_runs: 1

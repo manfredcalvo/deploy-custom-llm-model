@@ -1,0 +1,11 @@
+# Databricks bundle state
+.databricks/
+
+# Python
+__pycache__/
+*.pyc
+.env
+
+# Local temp files
+/tmp/
+*.log
