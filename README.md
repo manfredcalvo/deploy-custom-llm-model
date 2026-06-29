@@ -37,18 +37,18 @@ Log in using the workspace host first, then use the resulting profile in all com
 
 ```bash
 # Login (creates or updates a profile for this workspace)
-databricks auth login --host https://e2-demo-field-eng.cloud.databricks.com
+databricks auth login --host <workspace_host_url>
 
 # Optionally assign a named profile for convenience
-databricks auth login --host https://e2-demo-field-eng.cloud.databricks.com --profile e2-demo-field-eng
+databricks auth login --host <workspace_host_url> --profile <profile_name>
 ```
 
-Once authenticated, pass `--profile <name>` to every CLI command, or set it once in `databricks.yml`:
+Once authenticated, pass `--profile <profile_name>` to every CLI command, or set it once in `databricks.yml`:
 
 ```yaml
 workspace:
-  host: https://e2-demo-field-eng.cloud.databricks.com
-  profile: e2-demo-field-eng
+  host: <workspace_host_url>
+  profile: <profile_name>
 ```
 
 ## Deploy and run
