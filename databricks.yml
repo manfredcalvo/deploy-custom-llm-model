@@ -46,6 +46,9 @@ variables:
       vLLM tool-call parser enabling native OpenAI tool calling (gemma4 for Gemma 4
       models). Empty string disables.
     default: gemma4
+  provisioned_concurrency:
+    description: Fixed provisioned concurrency for the endpoint (multiples of 4; 4 = one GPU replica)
+    default: "4"
   smoke_test:
     description: Set to "false" to skip the local vLLM smoke test (bypasses FIPS container issue)
     default: "false"

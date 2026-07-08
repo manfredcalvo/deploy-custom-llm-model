@@ -21,6 +21,7 @@ resources:
               EMBED_WEIGHTS: ${var.embed_weights}
               TOOL_CALL_PARSER: ${var.tool_call_parser}
               EXTRA_VLLM_ARGS: ${var.extra_vllm_args}
+              PROVISIONED_CONCURRENCY: ${var.provisioned_concurrency}
             source: WORKSPACE
           environment_key: gpu_environment
           compute:

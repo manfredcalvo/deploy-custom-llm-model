@@ -25,6 +25,7 @@ Detailed docs are split into topic files — read the relevant one before making
 | [known-issues.md](docs/known-issues.md) | Active base-image bugs and their fixes (pip conflict, FIPS, artifact limits) |
 | [notebooks.md](docs/notebooks.md) | What each notebook does, widgets, key code sections |
 | [extending.md](docs/extending.md) | How to add a new model, eval examples, benchmark profiles, workspaces |
+| [concurrency-testing.md](docs/concurrency-testing.md) | Concurrency benchmark results, backoff strategy, context-length vs concurrency trade-offs |
 
 ## Workspace
 

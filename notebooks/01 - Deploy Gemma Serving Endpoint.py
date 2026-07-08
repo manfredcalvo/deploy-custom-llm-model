@@ -154,7 +154,8 @@ WORKLOAD_TYPE = ServingModelWorkloadType(dbutils.widgets.get("WORKLOAD_TYPE"))
 # Entrypoint-based custom LLM endpoints don't support autoscaling ranges (workload_size)
 # or scale-to-zero; they need a fixed provisioned concurrency, in multiples of 4
 # (4 = one GPU replica).
-PROVISIONED_CONCURRENCY = 4
+dbutils.widgets.text("PROVISIONED_CONCURRENCY", "4")
+PROVISIONED_CONCURRENCY = int(dbutils.widgets.get("PROVISIONED_CONCURRENCY"))
 SCALE_TO_ZERO_ENABLED = False
 
 print(f"Deploying {MODEL_REPO_ID} -> {UC_MODEL_NAME} -> endpoint '{ENDPOINT_NAME}'")

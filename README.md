@@ -122,6 +122,33 @@ ORDER BY ts DESC, endpoint, C
 
 **Measured throughput (A10, 256-tok):** E2B 74 tok/s → 608 tok/s at C=8 | E4B 43 tok/s → 338 tok/s | 12B QAT 46 tok/s → 331 tok/s
 
+## Concurrency & load testing
+
+`classification_benchmark.py` runs N concurrent document classification requests with exponential backoff:
+
+```bash
+python classification_benchmark.py --endpoint gemma-4-12b-it-q4 --users 100 --insecure
+python classification_benchmark.py --endpoint gemma-4-12b-it-q4 --users 500 --insecure
+python classification_benchmark.py --endpoint my-endpoint --users 200 --no-backoff --insecure
+```
+
+**Measured results on gemma-4-12b-it-q4 (128K context, A10):**
+
+| Config | Users | Success | Wall clock | p95 latency |
+|---|---|---|---|---|
+| concurrency=4, ~460 tok, backoff | 100 | 100% | 10.2s | 9.3s |
+| concurrency=4, ~460 tok, backoff | 500 | 100% | 76.2s | 46.5s |
+| concurrency=8, ~460 tok, backoff | 100 | 100% | **7.8s** | **7.6s** |
+| concurrency=8, ~460 tok, backoff | 500 | 100% | **25.2s** | **19.7s** |
+| concurrency=8, ~10,500 tok, backoff | 50 | 100% | 128.8s | 128.6s |
+| concurrency=8, ~10,500 tok, backoff | 100 | 36% | — | — (timeout) |
+
+Exponential backoff (`delay = 0.5s × 2^retry + jitter`) achieves 100% success at all load levels for
+short prompts. Long prompts (10K+ tokens) saturate the KV cache faster — keep concurrency ≤ ~20 users
+per A10 replica for 10K token workloads.
+
+> Full results, KV cache math, and scaling guidance: `.claude/docs/concurrency-testing.md`
+
 ## Known issues
 
 | Issue | Fix |
